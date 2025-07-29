@@ -73,16 +73,29 @@ function App() {
 
   const drawCell = (p: p5, x: number, y: number, scaleDegree: number | null, triadDegrees: number[], currentCellSize: number) => {
     p.stroke(128);
+    p.strokeWeight(1);
     p.noFill();
     p.rect(x, y, currentCellSize, currentCellSize);
     
     if (scaleDegree !== null) {
       if (triadDegrees.length > 0 && isTriadNote(scaleDegree, triadDegrees)) {
         const color = getTriadNoteColor(scaleDegree, triadDegrees);
+        const index = triadDegrees.indexOf(scaleDegree);
         p.fill(color);
+        
+        // Make root circles bold
+        if (index === 0) {
+          p.strokeWeight(3);
+        } else {
+          p.strokeWeight(1);
+        }
         p.stroke(0);
+        
         const circleRadius = currentCellSize * 0.35;
         p.circle(x + currentCellSize / 2, y + currentCellSize / 2, circleRadius * 2);
+        
+        // Reset stroke weight for subsequent drawings
+        p.strokeWeight(1);
       }
       
       p.fill(0);
