@@ -4,7 +4,7 @@ A React + p5.js application that visualizes musical theory concepts on a guitar 
 
 ## Live Demo
 
-🎸 **[View Live Application](https://vladmog.github.io/guitar-matrix)** 🎸
+🎸 **[View Live Application](https://vladmog.github.io/music-theory)** 🎸
 
 ## Features
 
@@ -35,4 +35,4 @@ npm run dev
 npm run deploy
 ```
 
-Deploys to GitHub Pages at https://vladmog.github.io/guitar-matrix
+Deploys to GitHub Pages at https://vladmog.github.io/music-theory
