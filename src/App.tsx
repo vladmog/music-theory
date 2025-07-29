@@ -57,6 +57,20 @@ function App() {
     return triadDegrees.includes(scaleDegree);
   };
 
+  const getTriadNoteColor = (scaleDegree: number, triadDegrees: number[]): string => {
+    if (triadDegrees.length === 0) return '#DCDCDC';
+    
+    const index = triadDegrees.indexOf(scaleDegree);
+    if (index === -1) return '#DCDCDC';
+    
+    switch (index) {
+      case 0: return '#FFB6C1'; // light red for root
+      case 1: return '#FFFF99'; // yellow for third
+      case 2: return '#90EE90'; // light green for fifth
+      default: return '#DCDCDC';
+    }
+  };
+
   const drawCell = (p: p5, x: number, y: number, scaleDegree: number | null, triadDegrees: number[], currentCellSize: number) => {
     p.stroke(128);
     p.noFill();
@@ -64,7 +78,8 @@ function App() {
     
     if (scaleDegree !== null) {
       if (triadDegrees.length > 0 && isTriadNote(scaleDegree, triadDegrees)) {
-        p.fill(220);
+        const color = getTriadNoteColor(scaleDegree, triadDegrees);
+        p.fill(color);
         p.stroke(0);
         const circleRadius = currentCellSize * 0.35;
         p.circle(x + currentCellSize / 2, y + currentCellSize / 2, circleRadius * 2);
@@ -140,7 +155,19 @@ function App() {
       <header className="App-header">
         <h1>Major scale degree visualizer</h1>
         
-        <div style={{ marginBottom: '20px' }}>
+        <div 
+          ref={sketchRef} 
+          style={{ 
+            border: '1px solid #ccc',
+            display: 'block',
+            backgroundColor: 'white',
+            margin: '0 auto',
+            maxWidth: '100vw',
+            overflow: 'auto'
+          }}
+        />
+        
+        <div style={{ marginTop: '20px' }}>
           <label htmlFor="triad-select" style={{ color: '#333' }}>Select Triad: </label>
           <select 
             id="triad-select"
@@ -155,18 +182,6 @@ function App() {
             ))}
           </select>
         </div>
-        
-        <div 
-          ref={sketchRef} 
-          style={{ 
-            border: '1px solid #ccc',
-            display: 'block',
-            backgroundColor: 'white',
-            margin: '0 auto',
-            maxWidth: '100vw',
-            overflow: 'auto'
-          }}
-        />
       </header>
     </div>
   );
