@@ -60,7 +60,7 @@ function renderCell(parent, x, y, semitonePosition, chordSemitones, cellSize, vo
         'dominant-baseline': 'central',
         'font-size': cellSize * 0.45,
         'font-weight': isSelected ? 'bold' : 'normal',
-        fill: isSelected ? '#000000' : '#969696',
+        fill: isSelected ? '#000000' : '#696969',
         'font-family': 'Helvetica Neue, Arial, sans-serif'
     });
     text.textContent = MT.INTERVAL_LABELS[semitonePosition];
@@ -100,7 +100,7 @@ function createGrid(container, config) {
             y: 0,
             width: matrixSize * cellSize,
             height: matrixSize * cellSize,
-            fill: '#ffffff'
+            fill: '#000000'
         }));
 
         for (var string = 0; string < matrixSize; string++) {
