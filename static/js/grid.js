@@ -14,8 +14,9 @@ function renderCell(parent, x, y, semitonePosition, chordSemitones, cellSize, vo
     var MT = window.MusicTheory;
     var g = createSVGElement('g');
 
-    // Cell border
-    g.appendChild(createSVGElement('rect', {
+    var isSelected = chordSemitones.size > 0 && chordSemitones.has(semitonePosition);
+
+    var rectAttrs = {
         x: x,
         y: y,
         width: cellSize,
@@ -23,34 +24,20 @@ function renderCell(parent, x, y, semitonePosition, chordSemitones, cellSize, vo
         fill: 'none',
         stroke: '#808080',
         'stroke-width': 1
-    }));
+    };
 
-    var isSelected = chordSemitones.size > 0 && chordSemitones.has(semitonePosition);
-
-    // Chord highlight circle
     if (isSelected) {
-        var fillColor = MT.lightenColor(MT.INTERVAL_BORDER_COLORS[semitonePosition]);
-        var borderColor = MT.INTERVAL_BORDER_COLORS[semitonePosition];
-        var strokeWidth = semitonePosition === 0 ? 3 : 1;
-        var radius = cellSize * 0.35;
+        rectAttrs.fill = MT.lightenColor(MT.INTERVAL_BORDER_COLORS[semitonePosition]);
+        rectAttrs.stroke = MT.INTERVAL_BORDER_COLORS[semitonePosition];
+        rectAttrs['stroke-width'] = semitonePosition === 0 ? 3 : 1;
 
-        var circleAttrs = {
-            cx: x + cellSize / 2,
-            cy: y + cellSize / 2,
-            r: radius,
-            fill: fillColor,
-            stroke: borderColor,
-            'stroke-width': strokeWidth
-        };
-
-        // Voice leading: dashed border for common tones
         if (voiceLeading && voiceLeading.commonTones.has(semitonePosition)) {
-            circleAttrs['stroke-dasharray'] = '3,2';
-            circleAttrs['stroke-width'] = Math.max(strokeWidth, 2);
+            rectAttrs['stroke-dasharray'] = '3,2';
+            rectAttrs['stroke-width'] = Math.max(rectAttrs['stroke-width'], 2);
         }
-
-        g.appendChild(createSVGElement('circle', circleAttrs));
     }
+
+    g.appendChild(createSVGElement('rect', rectAttrs));
 
     // Interval label
     var text = createSVGElement('text', {
