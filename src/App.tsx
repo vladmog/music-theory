@@ -36,6 +36,7 @@ const getOptimalCellSize = () => {
 const BASE_TUNING = 4;
 const STRING_INTERVAL = 5;
 const SCALE_MAPPING = [1, null, 2, null, 3, 4, null, 5, null, 6, null, 7];
+const INTERVAL_LABELS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
 
 function App() {
   const sketchRef = useRef<HTMLDivElement>(null);
@@ -43,14 +44,14 @@ function App() {
   const [cellSize, setCellSize] = useState(getOptimalCellSize());
   const p5Instance = useRef<p5 | null>(null);
 
-  const calculateScaleDegree = (string: number, fret: number): number | null => {
+  const calculateSemitonePosition = (string: number, fret: number): number => {
     let noteInSemitones = (BASE_TUNING + (string * STRING_INTERVAL) + fret) % 12;
-    
-    if (noteInSemitones < 0) {
-      noteInSemitones += 12;
-    }
-    
-    return SCALE_MAPPING[noteInSemitones];
+    if (noteInSemitones < 0) noteInSemitones += 12;
+    return noteInSemitones;
+  };
+
+  const calculateScaleDegree = (semitonePosition: number): number | null => {
+    return SCALE_MAPPING[semitonePosition];
   };
 
   const isTriadNote = (scaleDegree: number, triadDegrees: number[]): boolean => {
@@ -71,39 +72,37 @@ function App() {
     }
   };
 
-  const drawCell = (p: p5, x: number, y: number, scaleDegree: number | null, triadDegrees: number[], currentCellSize: number) => {
+  const drawCell = (p: p5, x: number, y: number, semitonePosition: number, scaleDegree: number | null, triadDegrees: number[], currentCellSize: number) => {
     p.stroke(128);
     p.strokeWeight(1);
     p.noFill();
     p.rect(x, y, currentCellSize, currentCellSize);
-    
-    if (scaleDegree !== null) {
-      if (triadDegrees.length > 0 && isTriadNote(scaleDegree, triadDegrees)) {
-        const color = getTriadNoteColor(scaleDegree, triadDegrees);
-        const index = triadDegrees.indexOf(scaleDegree);
-        p.fill(color);
-        
-        // Make root circles bold
-        if (index === 0) {
-          p.strokeWeight(3);
-        } else {
-          p.strokeWeight(1);
-        }
-        p.stroke(0);
-        
-        const circleRadius = currentCellSize * 0.35;
-        p.circle(x + currentCellSize / 2, y + currentCellSize / 2, circleRadius * 2);
-        
-        // Reset stroke weight for subsequent drawings
+
+    if (scaleDegree !== null && triadDegrees.length > 0 && isTriadNote(scaleDegree, triadDegrees)) {
+      const color = getTriadNoteColor(scaleDegree, triadDegrees);
+      const index = triadDegrees.indexOf(scaleDegree);
+      p.fill(color);
+
+      // Make root circles bold
+      if (index === 0) {
+        p.strokeWeight(3);
+      } else {
         p.strokeWeight(1);
       }
-      
-      p.fill(0);
-      p.noStroke();
-      p.textAlign(p.CENTER, p.CENTER);
-      p.textSize(currentCellSize * 0.6);
-      p.text(scaleDegree.toString(), x + currentCellSize / 2, y + currentCellSize / 2);
+      p.stroke(0);
+
+      const circleRadius = currentCellSize * 0.35;
+      p.circle(x + currentCellSize / 2, y + currentCellSize / 2, circleRadius * 2);
+
+      // Reset stroke weight for subsequent drawings
+      p.strokeWeight(1);
     }
+
+    p.fill(0);
+    p.noStroke();
+    p.textAlign(p.CENTER, p.CENTER);
+    p.textSize(currentCellSize * 0.45);
+    p.text(INTERVAL_LABELS[semitonePosition], x + currentCellSize / 2, y + currentCellSize / 2);
   };
 
   const drawMatrix = (p: p5, triadDegrees: number[], currentCellSize: number) => {
@@ -113,9 +112,10 @@ function App() {
       for (let fret = 0; fret < MATRIX_SIZE; fret++) {
         const x = fret * currentCellSize;
         const y = (MATRIX_SIZE - 1 - string) * currentCellSize;
-        const scaleDegree = calculateScaleDegree(string, fret);
-        
-        drawCell(p, x, y, scaleDegree, triadDegrees, currentCellSize);
+        const semitonePosition = calculateSemitonePosition(string, fret);
+        const scaleDegree = calculateScaleDegree(semitonePosition);
+
+        drawCell(p, x, y, semitonePosition, scaleDegree, triadDegrees, currentCellSize);
       }
     }
   };
