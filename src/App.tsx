@@ -78,6 +78,26 @@ function App() {
   const sketchRef = useRef<HTMLDivElement>(null);
   const [selectedChord, setSelectedChord] = useState<string>('');
   const [cellSize, setCellSize] = useState(getOptimalCellSize());
+
+  const handlePrevChord = () => {
+    const currentIndex = CHORD_OPTIONS.findIndex(opt => opt.value === selectedChord);
+    if (currentIndex <= 0) {
+      setSelectedChord(CHORD_OPTIONS[1].value);
+      return;
+    }
+    const prevIndex = currentIndex === 1 ? CHORD_OPTIONS.length - 1 : currentIndex - 1;
+    setSelectedChord(CHORD_OPTIONS[prevIndex].value);
+  };
+
+  const handleNextChord = () => {
+    const currentIndex = CHORD_OPTIONS.findIndex(opt => opt.value === selectedChord);
+    if (currentIndex <= 0) {
+      setSelectedChord(CHORD_OPTIONS[1].value);
+      return;
+    }
+    const nextIndex = currentIndex === CHORD_OPTIONS.length - 1 ? 1 : currentIndex + 1;
+    setSelectedChord(CHORD_OPTIONS[nextIndex].value);
+  };
   const p5Instance = useRef<p5 | null>(null);
 
   const calculateSemitonePosition = (string: number, fret: number): number => {
@@ -114,11 +134,19 @@ function App() {
       p.strokeWeight(1);
     }
 
-    p.fill(0);
     p.noStroke();
     p.textAlign(p.CENTER, p.CENTER);
     p.textSize(currentCellSize * 0.45);
+    const isSelected = chordSemitones.size > 0 && chordSemitones.has(semitonePosition);
+    if (isSelected) {
+      p.fill(0);
+      p.textStyle(p.BOLD);
+    } else {
+      p.fill(150);
+      p.textStyle(p.NORMAL);
+    }
     p.text(INTERVAL_LABELS[semitonePosition], x + currentCellSize / 2, y + currentCellSize / 2);
+    p.textStyle(p.NORMAL);
   };
 
   const drawMatrix = (p: p5, chordSemitones: Set<number>, currentCellSize: number) => {
@@ -194,7 +222,7 @@ function App() {
           }}
         />
 
-        <div style={{ marginTop: '20px' }}>
+        <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <label htmlFor="chord-select" style={{ color: '#333' }}>Select Chord: </label>
           <select
             id="chord-select"
@@ -208,6 +236,12 @@ function App() {
               </option>
             ))}
           </select>
+          <button onClick={handlePrevChord} aria-label="Previous chord" style={{ padding: '5px 10px', fontSize: '16px' }}>
+            ▲
+          </button>
+          <button onClick={handleNextChord} aria-label="Next chord" style={{ padding: '5px 10px', fontSize: '16px' }}>
+            ▼
+          </button>
         </div>
       </header>
     </div>
