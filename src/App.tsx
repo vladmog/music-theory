@@ -2,21 +2,58 @@ import { useRef, useEffect, useState } from 'react';
 import p5 from 'p5';
 import './App.css';
 
-interface TriadOption {
+interface ChordOption {
   value: string;
   label: string;
-  degrees: number[];
+  intervals: string[];
 }
 
-const TRIAD_OPTIONS: TriadOption[] = [
-  { value: '', label: 'Select a triad', degrees: [] },
-  { value: 'I', label: 'I (Major)', degrees: [1, 3, 5] },
-  { value: 'ii', label: 'ii (minor)', degrees: [2, 4, 6] },
-  { value: 'iii', label: 'iii (minor)', degrees: [3, 5, 7] },
-  { value: 'IV', label: 'IV (Major)', degrees: [4, 6, 1] },
-  { value: 'V', label: 'V (Major)', degrees: [5, 7, 2] },
-  { value: 'vi', label: 'vi (minor)', degrees: [6, 1, 3] },
-  { value: 'vii*', label: 'vii° (diminished)', degrees: [7, 2, 4] },
+const INTERVALS: Record<string, number> = {
+  '1': 0, 'b2': 1, '2': 2, 'b3': 3, '3': 4,
+  '4': 5, 'b5': 6, '#4': 6, '5': 7, '#5': 8, 'b6': 8,
+  '6': 9, 'bb7': 9, 'b7': 10, '7': 11,
+};
+
+const INTERVAL_BORDER_COLORS: string[] = [
+  '#FF0000', '#AA7733', '#EEBB00', '#007744', '#44CC66', '#2299DD',
+  '#EE7700', '#0055BB', '#6644AA', '#BB77FF', '#AA2255', '#FF66AA',
+];
+
+function lightenColor(hex: string, amount: number = 0.82): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const lr = Math.round(r + (255 - r) * amount);
+  const lg = Math.round(g + (255 - g) * amount);
+  const lb = Math.round(b + (255 - b) * amount);
+  return '#' + [lr, lg, lb].map(c => c.toString(16).padStart(2, '0')).join('');
+}
+
+const CHORD_OPTIONS: ChordOption[] = [
+  { value: '',        label: 'Select a chord',          intervals: [] },
+  { value: 'maj',     label: 'Major',                   intervals: ['1', '3', '5'] },
+  { value: 'min',     label: 'Minor',                   intervals: ['1', 'b3', '5'] },
+  { value: 'dim',     label: 'Diminished',              intervals: ['1', 'b3', 'b5'] },
+  { value: 'aug',     label: 'Augmented',               intervals: ['1', '3', '#5'] },
+  { value: 'maj7',    label: 'Major 7th',               intervals: ['1', '3', '5', '7'] },
+  { value: 'min7',    label: 'Minor 7th',               intervals: ['1', 'b3', '5', 'b7'] },
+  { value: '7',       label: 'Dominant 7th',            intervals: ['1', '3', '5', 'b7'] },
+  { value: 'dim7',    label: 'Diminished 7th',          intervals: ['1', 'b3', 'b5', 'bb7'] },
+  { value: 'min7b5',  label: 'Half-Diminished',         intervals: ['1', 'b3', 'b5', 'b7'] },
+  { value: 'sus2',    label: 'Suspended 2nd',           intervals: ['1', '2', '5'] },
+  { value: 'sus4',    label: 'Suspended 4th',           intervals: ['1', '4', '5'] },
+  { value: 'add9',    label: 'Add 9',                   intervals: ['1', '3', '5', '2'] },
+  { value: 'madd9',   label: 'Minor Add 9',             intervals: ['1', 'b3', '5', '2'] },
+  { value: '6',       label: 'Major 6th',               intervals: ['1', '3', '5', '6'] },
+  { value: 'min6',    label: 'Minor 6th',               intervals: ['1', 'b3', '5', '6'] },
+  { value: 'minmaj7', label: 'Minor Major 7th',         intervals: ['1', 'b3', '5', '7'] },
+  { value: 'augmaj7', label: 'Augmented Major 7th',     intervals: ['1', '3', '#5', '7'] },
+  { value: 'maj9',    label: 'Major 9th',               intervals: ['1', '3', '5', '7', '2'] },
+  { value: 'min9',    label: 'Minor 9th',               intervals: ['1', 'b3', '5', 'b7', '2'] },
+  { value: '9',       label: 'Dominant 9th',            intervals: ['1', '3', '5', 'b7', '2'] },
+  { value: '13',      label: 'Dominant 13th',           intervals: ['1', '3', '5', 'b7', '6'] },
+  { value: '7sus4',   label: 'Dominant 7th sus4',       intervals: ['1', '4', '5', 'b7'] },
+  { value: '5',       label: 'Power Chord',             intervals: ['1', '5'] },
 ];
 
 const MATRIX_SIZE = 15;
@@ -25,22 +62,21 @@ const getOptimalCellSize = () => {
   const viewportHeight = window.innerHeight;
   const padding = 40;
   const headerHeight = 120;
-  
+
   const cellSizeByWidth = Math.floor((viewportWidth - padding) / MATRIX_SIZE);
   const availableHeight = viewportHeight - headerHeight - padding;
   const cellSizeByHeight = Math.floor(availableHeight / MATRIX_SIZE);
-  
+
   return Math.min(cellSizeByWidth, cellSizeByHeight);
 };
 
 const BASE_TUNING = 4;
 const STRING_INTERVAL = 5;
-const SCALE_MAPPING = [1, null, 2, null, 3, 4, null, 5, null, 6, null, 7];
 const INTERVAL_LABELS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
 
 function App() {
   const sketchRef = useRef<HTMLDivElement>(null);
-  const [selectedTriad, setSelectedTriad] = useState<string>('');
+  const [selectedChord, setSelectedChord] = useState<string>('');
   const [cellSize, setCellSize] = useState(getOptimalCellSize());
   const p5Instance = useRef<p5 | null>(null);
 
@@ -50,51 +86,31 @@ function App() {
     return noteInSemitones;
   };
 
-  const calculateScaleDegree = (semitonePosition: number): number | null => {
-    return SCALE_MAPPING[semitonePosition];
+  const getChordSemitones = (intervals: string[]): Set<number> => {
+    return new Set(intervals.map(interval => INTERVALS[interval]));
   };
 
-  const isTriadNote = (scaleDegree: number, triadDegrees: number[]): boolean => {
-    return triadDegrees.includes(scaleDegree);
-  };
-
-  const getTriadNoteColor = (scaleDegree: number, triadDegrees: number[]): string => {
-    if (triadDegrees.length === 0) return '#DCDCDC';
-    
-    const index = triadDegrees.indexOf(scaleDegree);
-    if (index === -1) return '#DCDCDC';
-    
-    switch (index) {
-      case 0: return '#FFB6C1'; // light red for root
-      case 1: return '#FFFF99'; // yellow for third
-      case 2: return '#90EE90'; // light green for fifth
-      default: return '#DCDCDC';
-    }
-  };
-
-  const drawCell = (p: p5, x: number, y: number, semitonePosition: number, scaleDegree: number | null, triadDegrees: number[], currentCellSize: number) => {
+  const drawCell = (p: p5, x: number, y: number, semitonePosition: number, chordSemitones: Set<number>, currentCellSize: number) => {
     p.stroke(128);
     p.strokeWeight(1);
     p.noFill();
     p.rect(x, y, currentCellSize, currentCellSize);
 
-    if (scaleDegree !== null && triadDegrees.length > 0 && isTriadNote(scaleDegree, triadDegrees)) {
-      const color = getTriadNoteColor(scaleDegree, triadDegrees);
-      const index = triadDegrees.indexOf(scaleDegree);
-      p.fill(color);
+    if (chordSemitones.size > 0 && chordSemitones.has(semitonePosition)) {
+      const fillColor = lightenColor(INTERVAL_BORDER_COLORS[semitonePosition]);
+      const borderColor = INTERVAL_BORDER_COLORS[semitonePosition];
+      p.fill(fillColor);
 
-      // Make root circles bold
-      if (index === 0) {
+      if (semitonePosition === 0) {
         p.strokeWeight(3);
       } else {
         p.strokeWeight(1);
       }
-      p.stroke(0);
+      p.stroke(borderColor);
 
       const circleRadius = currentCellSize * 0.35;
       p.circle(x + currentCellSize / 2, y + currentCellSize / 2, circleRadius * 2);
 
-      // Reset stroke weight for subsequent drawings
       p.strokeWeight(1);
     }
 
@@ -105,17 +121,15 @@ function App() {
     p.text(INTERVAL_LABELS[semitonePosition], x + currentCellSize / 2, y + currentCellSize / 2);
   };
 
-  const drawMatrix = (p: p5, triadDegrees: number[], currentCellSize: number) => {
+  const drawMatrix = (p: p5, chordSemitones: Set<number>, currentCellSize: number) => {
     p.background(255);
-    
+
     for (let string = 0; string < MATRIX_SIZE; string++) {
       for (let fret = 0; fret < MATRIX_SIZE; fret++) {
         const x = fret * currentCellSize;
         const y = (MATRIX_SIZE - 1 - string) * currentCellSize;
         const semitonePosition = calculateSemitonePosition(string, fret);
-        const scaleDegree = calculateScaleDegree(semitonePosition);
-
-        drawCell(p, x, y, semitonePosition, scaleDegree, triadDegrees, currentCellSize);
+        drawCell(p, x, y, semitonePosition, chordSemitones, currentCellSize);
       }
     }
   };
@@ -146,12 +160,12 @@ function App() {
       };
 
       p.draw = () => {
-        const selectedTriadOption = TRIAD_OPTIONS.find(option => option.value === selectedTriad);
-        const triadDegrees = selectedTriadOption?.degrees || [];
-        drawMatrix(p, triadDegrees, cellSize);
+        const selectedChordOption = CHORD_OPTIONS.find(option => option.value === selectedChord);
+        const chordSemitones = getChordSemitones(selectedChordOption?.intervals || []);
+        drawMatrix(p, chordSemitones, cellSize);
       };
     };
-    
+
     p5Instance.current = new p5(sketch);
     p5Instance.current.redraw();
 
@@ -161,16 +175,16 @@ function App() {
         p5Instance.current = null;
       }
     };
-  }, [selectedTriad, cellSize]);
+  }, [selectedChord, cellSize]);
 
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Major scale degree visualizer</h1>
-        
-        <div 
-          ref={sketchRef} 
-          style={{ 
+        <h1>Chord interval visualizer</h1>
+
+        <div
+          ref={sketchRef}
+          style={{
             border: '1px solid #ccc',
             display: 'block',
             backgroundColor: 'white',
@@ -179,16 +193,16 @@ function App() {
             overflow: 'auto'
           }}
         />
-        
+
         <div style={{ marginTop: '20px' }}>
-          <label htmlFor="triad-select" style={{ color: '#333' }}>Select Triad: </label>
-          <select 
-            id="triad-select"
-            value={selectedTriad} 
-            onChange={(e) => setSelectedTriad(e.target.value)}
+          <label htmlFor="chord-select" style={{ color: '#333' }}>Select Chord: </label>
+          <select
+            id="chord-select"
+            value={selectedChord}
+            onChange={(e) => setSelectedChord(e.target.value)}
             style={{ padding: '5px', fontSize: '16px' }}
           >
-            {TRIAD_OPTIONS.map(option => (
+            {CHORD_OPTIONS.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
