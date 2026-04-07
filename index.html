@@ -1,13 +1,25 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Major scale degree visualizer</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chord Interval Visualizer</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <h1>Chord interval visualizer</h1>
+        <div id="grid-panel"></div>
+        <div id="controls">
+            <label for="chord-select">Select Chord:</label>
+            <select id="chord-select"></select>
+            <button id="prev-chord-btn" aria-label="Previous chord">&#9650;</button>
+            <button id="next-chord-btn" aria-label="Next chord">&#9660;</button>
+        </div>
+    </div>
+
+    <script src="static/js/music-theory.js"></script>
+    <script src="static/js/grid.js"></script>
+    <script src="static/js/app.js"></script>
+</body>
 </html>

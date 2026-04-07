@@ -1,0 +1,63 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+#grid-panel {
+    border: 1px solid #ccc;
+    background: white;
+    margin: 0 auto;
+    max-width: 100vw;
+    overflow: auto;
+}
+
+#controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+#controls label {
+    color: #333;
+    font-size: 16px;
+}
+
+#controls select {
+    padding: 5px;
+    font-size: 16px;
+}
+
+#controls button {
+    padding: 5px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background: #fff;
+}
+
+#controls button:hover {
+    background: #eee;
+}
