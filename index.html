@@ -3,19 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chord Interval Visualizer</title>
+    <title>Interval Visualizer</title>
     <link rel="stylesheet" href="static/css/style.css">
 </head>
 <body>
     <div class="app-container">
-        <h1>Chord interval visualizer</h1>
+        <h1>Interval visualizer</h1>
+        <div id="mode-toggle">
+            <label><input type="radio" name="mode" value="chord" checked> Chord</label>
+            <label><input type="radio" name="mode" value="scale"> Scale</label>
+        </div>
         <div id="grid-panel"></div>
         <div id="controls">
-            <label for="chord-select">Select Chord:</label>
-            <select id="chord-select"></select>
-            <button id="prev-chord-btn" aria-label="Previous chord">&#9650;</button>
-            <button id="next-chord-btn" aria-label="Next chord">&#9660;</button>
+            <div id="chord-controls">
+                <label for="chord-select">Chord:</label>
+                <select id="chord-select"></select>
+                <button id="prev-chord-btn" aria-label="Previous chord">&#9650;</button>
+                <button id="next-chord-btn" aria-label="Next chord">&#9660;</button>
+                <label id="voice-leading-label"><input type="checkbox" id="voice-leading-toggle"> Voice leading</label>
+            </div>
+            <div id="scale-controls" style="display: none;">
+                <label for="scale-select">Scale:</label>
+                <select id="scale-select"></select>
+                <button id="prev-scale-btn" aria-label="Previous scale">&#9650;</button>
+                <button id="next-scale-btn" aria-label="Next scale">&#9660;</button>
+                <label id="sevenths-label"><input type="checkbox" id="sevenths-toggle"> 7ths</label>
+            </div>
         </div>
+        <div id="info-panel"></div>
     </div>
 
     <script src="static/js/music-theory.js"></script>

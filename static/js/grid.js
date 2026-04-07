@@ -10,7 +10,7 @@ function createSVGElement(tag, attrs) {
     return el;
 }
 
-function renderCell(parent, x, y, semitonePosition, chordSemitones, cellSize) {
+function renderCell(parent, x, y, semitonePosition, chordSemitones, cellSize, voiceLeading) {
     var MT = window.MusicTheory;
     var g = createSVGElement('g');
 
@@ -34,14 +34,22 @@ function renderCell(parent, x, y, semitonePosition, chordSemitones, cellSize) {
         var strokeWidth = semitonePosition === 0 ? 3 : 1;
         var radius = cellSize * 0.35;
 
-        g.appendChild(createSVGElement('circle', {
+        var circleAttrs = {
             cx: x + cellSize / 2,
             cy: y + cellSize / 2,
             r: radius,
             fill: fillColor,
             stroke: borderColor,
             'stroke-width': strokeWidth
-        }));
+        };
+
+        // Voice leading: dashed border for common tones
+        if (voiceLeading && voiceLeading.commonTones.has(semitonePosition)) {
+            circleAttrs['stroke-dasharray'] = '3,2';
+            circleAttrs['stroke-width'] = Math.max(strokeWidth, 2);
+        }
+
+        g.appendChild(createSVGElement('circle', circleAttrs));
     }
 
     // Interval label
@@ -78,7 +86,7 @@ function createGrid(container, config) {
         container.appendChild(svg);
     }
 
-    function render(chordSemitones) {
+    function render(chordSemitones, voiceLeading) {
         if (!svg) buildSVG();
 
         // Clear existing content
@@ -100,7 +108,7 @@ function createGrid(container, config) {
                 var x = fret * cellSize;
                 var y = (matrixSize - 1 - string) * cellSize;
                 var semitonePosition = MT.calculateSemitonePosition(string, fret);
-                renderCell(svg, x, y, semitonePosition, chordSemitones, cellSize);
+                renderCell(svg, x, y, semitonePosition, chordSemitones, cellSize, voiceLeading);
             }
         }
     }
